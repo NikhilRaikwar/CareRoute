@@ -1,43 +1,53 @@
 # CareRoute
 
-CareRoute is a wallet-funded clinical workflow assistant built for the **Agentic Economy on Arc** hackathon. A user funds a small case budget in USDC on **Arc Testnet**, specialist agents are invoked only when needed, and every paid step settles onchain with visible receipts.
+**Clinical intake, priced per step.**
 
-This is a **clinical intake routing** product, not diagnosis software and not medical advice.
+CareRoute is a wallet-funded clinical workflow assistant built for the **Agentic Economy on Arc** hackathon. A user funds a small USDC case budget on Arc Testnet, specialist AI agents consume it step by step, and every payment settles onchain with real Arcscan receipts.
 
-## What CareRoute does
+> ⚠️ CareRoute is a **clinical workflow routing assistant**, not diagnosis software and not medical advice.
 
-- connects a real user wallet on Arc Testnet
-- funds a small per-case budget from the user's wallet
-- routes symptom intake through an orchestrator and specialist agents
-- pays per analysis step instead of charging a flat subscription
-- returns a structured workflow report with risk flags, urgency, and specialist reasoning
-- shows real Arc explorer links for funding and agent settlement transactions
+---
+
+## How it works
+
+1. **Connect wallet** on Arc Testnet (MetaMask or compatible)
+2. **Fund a case budget** - send a small USDC amount to the orchestrator wallet
+3. **Submit symptom intake** - describe symptoms in plain text
+4. **Agents route the case** - orchestrator decides which specialists are needed
+5. **Each specialist settles onchain** - Cardiology, Neurology, Respiratory, or General agents each pay $0.002 per review
+6. **Verifier closes the case** - aggregates findings, risk flags, and urgency at $0.001
+7. **Unused budget can be refunded** - full user custody throughout
+
+---
+
+## Agent workflow
+
+```text
+Patient Input -> Orchestrator ($0.001) -> Specialist Agents ($0.002 each) -> Verifier ($0.001)
+```
+
+| Agent | Role | Cost |
+|---|---|---:|
+| Orchestrator | Intake summary + specialist routing | $0.001 |
+| Cardiology | Cardiovascular symptom review | $0.002 |
+| Neurology | Neurological symptom review | $0.002 |
+| Respiratory | Respiratory symptom review | $0.002 |
+| General | Fallback broad review | $0.002 |
+| Verifier | Second opinion + final structured output | $0.001 |
+
+**Typical total case cost: $0.006-$0.008**
+
+---
 
 ## Hackathon fit
 
-- Primary track: `Usage-Based Compute Billing`
-- Secondary track: `Agent-to-Agent Payment Loop`
-- Additional fit: `Per-API Monetization Engine`
+- **Usage-Based Compute Billing** - each agent charges for the compute it actually runs
+- **Agent-to-Agent Payment Loop** - orchestrator pays specialist agents from the user-funded budget
+- **Per-API Monetization Engine** - each specialist is a paid agent endpoint with onchain proof
 
-Why it fits:
-- the user pays only for the compute actually used on a case
-- the orchestrator pays specialist agents step by step
-- each specialist can be treated as a paid agent endpoint
+---
 
-## The problem
-
-Clinical intake workflows are usually priced as flat software seats or bundled service contracts, even when each case only uses a small amount of actual reasoning. That model is inefficient for short-lived AI workflows where each routing decision may only justify fractions of a cent in value. On traditional high-gas chains, these tiny per-step settlements are economically irrational. On Arc, they become viable.
-
-## The solution
-
-CareRoute turns clinical intake into a **user-funded, usage-based agent workflow**:
-
-1. the user connects a wallet
-2. the user funds a tiny case budget
-3. the orchestrator summarizes intake and decides which specialists are needed
-4. specialist agents produce structured reviews
-5. a verifier agent aggregates findings and urgency
-6. each step is settled on Arc and shown in the dashboard
+## Architecture
 
 ## Core workflow
 
@@ -73,6 +83,8 @@ flowchart LR
     ARC --> FE
 ```
 
+---
+
 ## Runtime sequence
 
 ```mermaid
@@ -101,121 +113,131 @@ sequenceDiagram
     Frontend-->>User: Report + explorer links
 ```
 
-## Agent roles
+---
 
-| Agent | Job | Typical spend |
-|---|---|---:|
-| Orchestrator | intake summary, routing, case coordination | `$0.001` |
-| Cardiology | cardio symptom review | `$0.002` |
-| Neurology | neuro symptom review | `$0.002` |
-| Respiratory | respiratory symptom review | `$0.002` |
-| General | fallback general review | `$0.002` |
-| Verifier | second opinion and final output | `$0.001` |
+## Why Arc?
 
-## Why Arc matters
+| | CareRoute on Arc | Illustrative L1 (gas) |
+|---|---|---|
+| Case cost | ~$0.008 | ~$18.40 |
+| Settlement | Sub-second finality | Variable, slow |
+| Economics | Viable | Margin-destroying |
 
-CareRoute is built around **sub-cent economic viability**.
+On traditional high-gas chains, paying $4-5 in gas to settle a $0.002 specialist payment makes no economic sense. Arc's stablecoin-native, gas-efficient model is what makes per-step agent billing commercially viable.
 
-- typical case cost in CareRoute: around `$0.004 - $0.008`
-- multiple specialist steps can settle independently
-- judges can see repeated onchain receipts in a single live session
+---
 
-On traditional high-gas chains, a few dollars of gas to settle fractions of a cent destroys the unit economics. Arc's stablecoin-native, fast settlement model is what makes the workflow credible.
+## Tech stack
 
-## Stack
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15, React 18 |
+| Wallet | wagmi, custom WalletProvider |
+| Chain client | viem |
+| Chain | Arc Testnet (chain ID: 5042002) |
+| Settlement | USDC native on Arc |
+| AI routing | AI/ML API (GPT-4o) |
+| Notifications | sonner |
+| Explorer | Arcscan |
 
-- **Frontend:** Next.js 15, React 18
-- **Wallet UX:** wagmi, RainbowKit
-- **Chain client:** viem
-- **Chain target:** Arc Testnet
-- **AI routing:** AI/ML API
-- **Notifications:** sonner
+---
 
-## Repository structure
+## Project structure
 
 ```text
 app/
-  page.tsx
-  dashboard/page.tsx
-  api/run-case/route.ts
-  api/run-batch/route.ts
-  api/refund-budget/route.ts
+  page.tsx                    # Landing page
+  dashboard/page.tsx          # Main dashboard
+  api/run-case/route.ts       # Run a single case
+  api/run-batch/route.ts      # Run a batch of demo cases
+  api/refund-budget/route.ts  # Refund unused budget
+
 components/
-  landing-page.tsx
-  dashboard-page.tsx
-  connect-button.tsx
-  wallet-provider.tsx
+  landing-page.tsx            # Public landing page
+  dashboard-page.tsx          # Connected dashboard UI
+  connect-button.tsx          # Wallet connect button
+  wallet-provider.tsx         # Arc Testnet wallet context
+  app-providers.tsx           # App-level providers
+
 lib/
-  aiml.ts
-  arc.ts
-  care-route.ts
-  transactions.ts
-  types.ts
-README.md
-SUBMISSION.md
-output/
-  CareRoute_Hackathon_Deck.pptx
+  aiml.ts                     # AI/ML API integration
+  arc.ts                      # Arc chain config
+  care-route.ts               # Agent orchestration logic
+  transactions.ts             # Onchain transfer helpers
+  types.ts                    # Shared TypeScript types
+  format.ts                   # Formatting utilities
 ```
 
-## Environment variables
+---
 
-Copy `.env.example` to `.env.local` and fill the required values.
+## Environment setup
 
-### Wallet and chain
+Copy `.env.example` to `.env.local` and fill in:
 
-- `NEXT_PUBLIC_ARC_RPC_URL`
-- `NEXT_PUBLIC_ARC_CHAIN_ID`
-- `NEXT_PUBLIC_ORCHESTRATOR_ADDRESS`
-- `ORCHESTRATOR_ADDRESS`
-- `ORCHESTRATOR_PRIVATE_KEY`
+```bash
+# Arc Testnet RPC
+NEXT_PUBLIC_ARC_RPC_URL=https://rpc.testnet.arc.network
+NEXT_PUBLIC_ARC_CHAIN_ID=5042002
+NEXT_PUBLIC_ORCHESTRATOR_ADDRESS=0x...   # orchestrator wallet address
 
-### Agent recipients
+# Orchestrator server wallet (for paying agents from backend)
+ORCHESTRATOR_PRIVATE_KEY=0x...
+ORCHESTRATOR_ADDRESS=0x...
 
-- `CARDIOLOGY_AGENT_ADDRESS`
-- `NEUROLOGY_AGENT_ADDRESS`
-- `RESPIRATORY_AGENT_ADDRESS`
-- `GENERAL_AGENT_ADDRESS`
-- `VERIFIER_AGENT_ADDRESS`
+# Specialist agent recipient wallets
+CARDIOLOGY_AGENT_ADDRESS=0x...
+NEUROLOGY_AGENT_ADDRESS=0x...
+RESPIRATORY_AGENT_ADDRESS=0x...
+GENERAL_AGENT_ADDRESS=0x...
+VERIFIER_AGENT_ADDRESS=0x...
 
-### AI routing
+# AI routing
+AIML_API_KEY=your_key_here
+AIML_BASE_URL=https://api.aimlapi.com/v1
+AIML_MODEL=gpt-4o
+```
 
-- `AIML_API_KEY`
-- `AIML_BASE_URL`
-- `AIML_MODEL`
+---
 
-## Local setup
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open:
+Open `http://localhost:3000`
 
-- `http://localhost:3000`
+---
 
-## Real test flow
+## Demo walkthrough
 
-1. connect wallet on Arc Testnet
-2. fund the case budget
-3. paste a symptom intake
-4. click `Run Case`
-5. inspect the structured report
-6. open the Arc explorer links from the dashboard
+1. Open the app and connect MetaMask on Arc Testnet
+2. Click **Fund $0.020** - this sends USDC from your wallet to the orchestrator
+3. Paste a symptom description, for example:
 
-Suggested test input:
+   > *54-year-old with chest pain radiating to the left arm, shortness of breath, mild dizziness, and fatigue for 2 days. Symptoms worsen on exertion.*
 
-```text
-54-year-old with chest pain radiating to the left arm, shortness of breath, mild dizziness, and fatigue for 2 days. No known trauma. Symptoms worsen on exertion.
-```
+4. Click **Run Case**
+5. Watch the agent flow indicator move through orchestrator -> specialists -> verifier
+6. Inspect the structured report: intake summary, risk flags, and urgency level
+7. Click any transaction hash to verify it on Arcscan
+8. Click **Refund Remaining** to return unused budget to your wallet
 
-## Submission talking points
+---
 
-- **Business value:** usage-based clinical workflow automation
-- **Originality:** user-funded case budgets with specialist agent routing
-- **Technical proof:** real Arc-settled per-step payouts
-- **Hackathon proof:** visible sub-cent pricing and repeated transactions
+## Arc integration details
+
+- **Chain:** Arc Testnet, chain ID `5042002`
+- **RPC:** `https://rpc.testnet.arc.network`
+- **Explorer:** `https://testnet.arcscan.app`
+- **Native token:** USDC (18 decimals on Arc)
+- **Funding:** user wallet -> orchestrator via `eth_sendTransaction`
+- **Agent payouts:** orchestrator private key -> specialist wallets via viem `sendTransaction`
+- **All transactions:** confirmed via `waitForTransactionReceipt` before returning to the frontend
+
+---
 
 ## Safety note
 
-CareRoute is a **clinical workflow assistant** for intake routing and structured risk flagging. It does not diagnose, prescribe, or replace clinician judgment.
+CareRoute routes and structures clinical intake for workflow purposes only. It does not diagnose, prescribe treatment, or replace clinician judgment. All AI outputs should be reviewed by qualified healthcare professionals.
