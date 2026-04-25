@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env
+runtime.out.log
+runtime.err.log
+devserver.out.log
+devserver.err.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
