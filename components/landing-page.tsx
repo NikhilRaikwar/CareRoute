@@ -33,7 +33,7 @@ export function LandingPage() {
       <section className="hero">
         <div className="badge">
           <div className="dot" />
-          Built on Arc · User-funded case budgets
+          Built on Arc · Real specialist routing
         </div>
         <h1>
           Clinical intake,
@@ -122,7 +122,7 @@ export function LandingPage() {
           </div>
         </div>
         <div className="flow-summary">
-          total typical case cost: <strong>$0.006–$0.008</strong> · user funds
+          total typical case cost: <strong>$0.006-$0.008</strong> · user funds
           budget first · unused balance can be refunded
         </div>
       </section>
@@ -214,7 +214,7 @@ export function LandingPage() {
           <div className="tx-row">
             <span className="tx-id">2</span>
             <span className="tx-agent">The orchestrator spends only the steps required for the case</span>
-            <span className="tx-amount">$0.001–$0.002</span>
+            <span className="tx-amount">$0.001-$0.002</span>
             <span className="tx-status">real</span>
           </div>
           <div className="tx-row">

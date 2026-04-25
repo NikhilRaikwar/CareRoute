@@ -10,3 +10,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 careroute_presentation.html
+
+.chrome-profile/
+assets/
+careroute_presentation_print.html
+scripts/
